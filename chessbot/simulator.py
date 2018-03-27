@@ -32,7 +32,7 @@ class ChessSimulator:
         clear_output(wait=True)
         display(svg)
 
-    def simulate(self, rounds=3, timeout=10, turn_sleep_ms=0):
+    def simulate(self, rounds=4, timeout=10, turn_sleep_ms=0, display_board_size=450):
         self.results = []
         for r in range(rounds):
             self.board.reset()
@@ -47,12 +47,12 @@ class ChessSimulator:
                     next_move = future.result(timeout=timeout)
                 self.board.push(next_move)
 
-                self.print_board(SVG(chess.svg.board(board=self.board)))
+                self.print_board(SVG(chess.svg.board(board=self.board, size=display_board_size)))
                 step += 1
                 if (turn_sleep_ms > 0):
                     time.sleep(turn_sleep_ms / 1000)
 
-            last_board = SVG(chess.svg.board(board=self.board))
+            last_board = SVG(chess.svg.board(board=self.board, size=display_board_size))
             winner = {'1-0': 0,
                       '0-1': 1,
                       '1/2-1/2': 2}[self.board.result()]
