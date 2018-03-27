@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 class ChessSimulator:
-    OUTCOMES = ['White', 'Black', 'Draw']
+    DRAW = "Draw"
 
     def __init__(self, player1, player2):
         assert issubclass(type(player1), ChessBot)
@@ -39,6 +39,7 @@ class ChessSimulator:
 
             # Even games first player is white
             step = r % 2
+            outcomes = [self.players[step].get_name(), self.players[1 - step].get_name(), self.DRAW]
 
             while (not self.board.is_game_over()):
                 player = self.players[step % 2]
@@ -53,12 +54,15 @@ class ChessSimulator:
                     time.sleep(turn_sleep_ms / 1000)
 
             last_board = SVG(chess.svg.board(board=self.board, size=display_board_size))
-            winner = {'1-0': 0,
-                      '0-1': 1,
-                      '1/2-1/2': 2}[self.board.result()]
+            winner_id = {'1-0': 0, '0-1': 1,'1/2-1/2': 2}[self.board.result()]
+            winner = outcomes[winner_id]
             self.results.append((last_board, winner))
-        clear_output(wait=True)
-        for (svg, winner) in self.results:
-            print('Winner {}'.format(self.OUTCOMES[winner]))
-            display(svg)
 
+        clear_output(wait=True)
+        summary = {self.p1.get_name(): 0, self.p2.get_name(): 0}
+        for (svg, winner) in self.results:
+            print('Winner: {}'.format(winner))
+            if winner != self.DRAW: summary[winner] += 1
+            display(svg)
+        print(summary)
+        return max(summary)
