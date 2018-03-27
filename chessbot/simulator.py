@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 class ChessSimulator:
-    OUTCOMES = ['White', 'Black', 'Pat']
+    OUTCOMES = ['White', 'Black', 'Draw']
 
     def __init__(self, player1, player2):
         assert issubclass(type(player1), ChessBot)
@@ -53,15 +53,12 @@ class ChessSimulator:
                     time.sleep(turn_sleep_ms / 1000)
 
             last_board = SVG(chess.svg.board(board=self.board))
-            winner = self.result(self.board)
+            winner = {'1-0': 0,
+                      '0-1': 1,
+                      '1/2-1/2': 2}[self.board.result()]
             self.results.append((last_board, winner))
         clear_output(wait=True)
         for (svg, winner) in self.results:
             print('Winner {}'.format(self.OUTCOMES[winner]))
             display(svg)
 
-    def result(self, board):
-        if (len(list(board.legal_moves)) > 0):
-            return 2
-        else:
-            return int(board.turn)
