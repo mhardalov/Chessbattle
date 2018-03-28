@@ -20,6 +20,9 @@ class ChessBot:
     def get_name(self):
         return self.__class__.__name__ + ' ' + self.name
 
+    def get_short_name(self):
+        return self.name[0:3]
+
 class ChessBotDumb(ChessBot):
         
     
