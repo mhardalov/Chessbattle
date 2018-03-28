@@ -62,7 +62,10 @@ class ChessSimulator:
         summary = {self.p1.get_name(): 0, self.p2.get_name(): 0}
         for (svg, winner) in self.results:
             print('Winner: {}'.format(winner))
-            if winner != self.DRAW: summary[winner] += 1
+            if winner != self.DRAW: summary[winner] += 1.0
+            else:
+                summary[self.p1.get_name()] += 0.5
+                summary[self.p2.get_name()] += 0.5
             display(svg)
         print(summary)
-        return max(summary)
+        return summary
