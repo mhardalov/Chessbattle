@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 class ChessSimulator:
     DRAW = "Draw"
 
-    def __init__(self, player1, player2):
+    def __init__(self, player1, player2, shuffle=True):
         assert issubclass(type(player1), ChessBot)
         assert issubclass(type(player2), ChessBot)
 
@@ -26,13 +26,13 @@ class ChessSimulator:
         self.results = []
 
         self.players = [self.p1, self.p2]
-        rnd.shuffle(self.players)
+        if shuffle: rnd.shuffle(self.players)
 
     def print_board(self, svg, clear=False):
         clear_output(wait=True)
         display(svg)
 
-    def simulate(self, rounds=4, timeout=10, turn_sleep_ms=0, display_board_size=450):
+    def simulate(self, rounds=4, timeout=10, turn_sleep_ms=0, display_board_size=450, display_board=True):
         self.results = []
         for r in range(rounds):
             self.board.reset()
@@ -48,7 +48,7 @@ class ChessSimulator:
                     next_move = future.result(timeout=timeout)
                 self.board.push(next_move)
 
-                self.print_board(SVG(chess.svg.board(board=self.board, size=display_board_size)))
+                if display_board: self.print_board(SVG(chess.svg.board(board=self.board, size=display_board_size)))
                 step += 1
                 if (turn_sleep_ms > 0):
                     time.sleep(turn_sleep_ms / 1000)
@@ -61,11 +61,11 @@ class ChessSimulator:
         clear_output(wait=True)
         summary = {self.p1.get_name(): 0, self.p2.get_name(): 0}
         for (svg, winner) in self.results:
-            print('Winner: {}'.format(winner))
+            print('Game: {} vs {}. Winner: {}'
+                    .format(self.players[0].get_name(), self.players[1].get_name(), winner))
             if winner != self.DRAW: summary[winner] += 1.0
             else:
                 summary[self.p1.get_name()] += 0.5
                 summary[self.p2.get_name()] += 0.5
-            display(svg)
-        print(summary)
+            if display_board: display(svg)
         return summary
