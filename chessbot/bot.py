@@ -131,7 +131,7 @@ class ChessBotVictor(ChessBot):
              20, 30, 10,  0,  0, 10, 30, 20
         ]
 
-        king_end_game_table = [
+        king_late_game_table = [
             -50,-40,-30,-20,-20,-30,-40,-50,
             -30,-20,-10,  0,  0,-10,-20,-30,
             -30,-10, 20, 30, 30, 20,-10,-30,
@@ -163,7 +163,7 @@ class ChessBotVictor(ChessBot):
                 score += queen_table[i]
 
             elif piece.piece_type == chess.KING and board.fullmove_number > 15:
-                score += king_end_game_table[i]
+                score += king_late_game_table[i]
 
             elif piece.piece_type == chess.KING:
                 score += king_table[i]
@@ -215,7 +215,7 @@ class ChessBotVictor(ChessBot):
     def minimax(self, board, is_white, depth, alpha, beta):
         if depth == 0 or board.is_checkmate():
             return self.calc_heuristic_score(board, is_white)
-        
+
         elif board.turn == is_white:
             v = -10**6
 
