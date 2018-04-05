@@ -36,7 +36,7 @@ class ChessBotOK(ChessBot):
                 board.pop()
 
                 if(move_score > best_score):
-                    best_scpre, best_move = move_score, move
+                    best_score, best_move = move_score, move
 
             return (best_score, best_move)
 
