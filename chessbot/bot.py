@@ -61,11 +61,9 @@ class ChessBotVictor(ChessBot):
     def __init__(self, name, opt_dict = None):
         super().__init__(name, opt_dict)
         self.depth = opt_dict['depth']
+        self.is_white = True
 
-    def calc_heuristic_score(self, board, is_white):
-        score = 0     
-
-        pawns_table = [
+        self.pawns_table_white = [
             0,  0,  0,  0,  0,  0,  0,  0,
             50, 50, 50, 50, 50, 50, 50, 50,
             10, 10, 20, 30, 30, 20, 10, 10,
@@ -76,7 +74,9 @@ class ChessBotVictor(ChessBot):
             0,  0,  0,  0,  0,  0,  0,  0
         ]
 
-        knights_table = [
+        self.pawns_table_black = [i for i in reversed(self.pawns_table_white)]
+
+        self.knights_table_white = [
             -50,-40,-30,-30,-30,-30,-40,-50,
             -40,-20,  0,  0,  0,  0,-20,-40,
             -30,  0, 10, 15, 15, 10,  0,-30,
@@ -87,7 +87,9 @@ class ChessBotVictor(ChessBot):
             -50,-40,-30,-30,-30,-30,-40,-50
         ]
 
-        bishops_table = [
+        self.knights_table_black = [i for i in reversed(self.knights_table_white)]
+
+        self.bishops_table_white = [
             -20,-10,-10,-10,-10,-10,-10,-20,
             -10,  0,  0,  0,  0,  0,  0,-10,
             -10,  0,  5, 10, 10,  5,  0,-10,
@@ -98,7 +100,9 @@ class ChessBotVictor(ChessBot):
             -20,-10,-10,-10,-10,-10,-10,-20
         ]
 
-        rooks_table = [
+        self.bishops_table_black = [i for i in reversed(self.bishops_table_white)]
+
+        self.rooks_table_white = [
              0,  0,  0,  0,  0,  0,  0,  0,
              5, 10, 10, 10, 10, 10, 10,  5,
             -5,  0,  0,  0,  0,  0,  0, -5,
@@ -109,7 +113,9 @@ class ChessBotVictor(ChessBot):
              0,  0,  0,  5,  5,  0,  0,  0
         ]
 
-        queen_table = [
+        self.rooks_table_black = [i for i in reversed(self.rooks_table_white)]
+
+        self.queen_table_white = [
             -20,-10,-10, -5, -5,-10,-10,-20,
             -10,  0,  0,  0,  0,  0,  0,-10,
             -10,  0,  5,  5,  5,  5,  0,-10,
@@ -119,8 +125,10 @@ class ChessBotVictor(ChessBot):
             -10,  0,  5,  0,  0,  0,  0,-10,
             -20,-10,-10, -5, -5,-10,-10,-20
         ]
+        
+        self.queen_table_black = [i for i in reversed(self.queen_table_white)]
 
-        king_table = [
+        self.king_table_white = [
             -30,-40,-40,-50,-50,-40,-40,-30,
             -30,-40,-40,-50,-50,-40,-40,-30,
             -30,-40,-40,-50,-50,-40,-40,-30,
@@ -131,7 +139,9 @@ class ChessBotVictor(ChessBot):
              20, 30, 10,  0,  0, 10, 30, 20
         ]
 
-        king_late_game_table = [
+        self.king_table_black = [i for i in reversed(self.king_table_white)]
+
+        self.king_late_game_table_white = [
             -50,-40,-30,-20,-20,-30,-40,-50,
             -30,-20,-10,  0,  0,-10,-20,-30,
             -30,-10, 20, 30, 30, 20,-10,-30,
@@ -142,88 +152,111 @@ class ChessBotVictor(ChessBot):
             -50,-30,-30,-30,-30,-30,-30,-50
         ]
 
+        self.king_late_game_table_black = [i for i in reversed(self.king_late_game_table_white)]
+
+    def calc_heuristic_score(self, board):
+        score = 0
+
         for i in range(8*8):
             piece = board.piece_at(i)
             if not piece:
                 continue
 
             if piece.piece_type == chess.PAWN:
-                score += pawns_table[i]
+                if self.is_white:
+                    score += self.pawns_table_white[i]
+                else:
+                    score += self.pawns_table_black[i]                    
 
             elif piece.piece_type == chess.KNIGHT:
-                score += knights_table[i]
+                if self.is_white:
+                    score += self.knights_table_white[i]
+                else:
+                    score += self.knights_table_black[i]                    
 
             elif piece.piece_type == chess.BISHOP:
-                score += bishops_table[i]
+                if self.is_white:
+                    score += self.bishops_table_white[i]
+                else:
+                    score += self.bishops_table_black[i]                    
 
             elif piece.piece_type == chess.ROOK:
-                score += rooks_table[i]
+                if self.is_white:
+                    score += self.rooks_table_white[i]
+                else:
+                    score += self.rooks_table_black[i]                    
 
             elif piece.piece_type == chess.QUEEN:
-                score += queen_table[i]
+                if self.is_white:
+                    score += self.queen_table_white[i]
+                else:
+                    score += self.queen_table_black[i]                    
 
             elif piece.piece_type == chess.KING and board.fullmove_number > 15:
-                score += king_late_game_table[i]
+                if self.is_white:
+                    score += self.king_late_game_table_white[i]
+                else:
+                    score += self.king_late_game_table_black[i]                    
 
             elif piece.piece_type == chess.KING:
-                score += king_table[i]
+                if self.is_white:
+                    score += self.king_table_white[i]
+                else:
+                    score += self.king_table_black[i]
 
             else:
                 pass
 
-        if not is_white:
-            score *= -1
+        if board.is_checkmate() and (not self.is_white == board.turn):
+            score += 900
 
-        if board.is_checkmate() and (not is_white == board.turn):
-            score += 9000
+        if board.is_checkmate() and (self.is_white == board.turn):
+            score -= 900
 
-        if board.is_checkmate() and (is_white == board.turn):
-            score -= 9000
-
-        if len(board.pieces(5, is_white)) > len(board.pieces(5, (not is_white))): # Takes Queen
+        if len(board.pieces(5, self.is_white)) > len(board.pieces(5, (not self.is_white))): # Takes Queen
             score += 900
         
-        if len(board.pieces(5, is_white)) < len(board.pieces(5, (not is_white))): # Looses Queen
+        if len(board.pieces(5, self.is_white)) < len(board.pieces(5, (not self.is_white))): # Looses Queen
             score += -900
 
-        if len(board.pieces(4, is_white)) > len(board.pieces(4, (not is_white))): # Takes Rook
+        if len(board.pieces(4, self.is_white)) > len(board.pieces(4, (not self.is_white))): # Takes Rook
             score += 500
         
-        if len(board.pieces(4, is_white)) < len(board.pieces(4, (not is_white))): # Looses Rook
+        if len(board.pieces(4, self.is_white)) < len(board.pieces(4, (not self.is_white))): # Looses Rook
             score += -500
 
-        if len(board.pieces(3, is_white)) > len(board.pieces(3, (not is_white))): # Takes Bishop
+        if len(board.pieces(3, self.is_white)) > len(board.pieces(3, (not self.is_white))): # Takes Bishop
             score += 300
         
-        if len(board.pieces(3, is_white)) < len(board.pieces(3, (not is_white))): # Looses Bishop
+        if len(board.pieces(3, self.is_white)) < len(board.pieces(3, (not self.is_white))): # Looses Bishop
             score += -300
 
-        if len(board.pieces(2, is_white)) > len(board.pieces(2, (not is_white))): # Takes Knight
+        if len(board.pieces(2, self.is_white)) > len(board.pieces(2, (not self.is_white))): # Takes Knight
             score += 300
         
-        if len(board.pieces(2, is_white)) < len(board.pieces(2, (not is_white))): # Looses Knight
+        if len(board.pieces(2, self.is_white)) < len(board.pieces(2, (not self.is_white))): # Looses Knight
             score += -300
 
-        if len(board.pieces(1, is_white)) > len(board.pieces(1, (not is_white))): # Takes Pawn
+        if len(board.pieces(1, self.is_white)) > len(board.pieces(1, (not self.is_white))): # Takes Pawn
             score += 100
         
-        if len(board.pieces(1, is_white)) < len(board.pieces(1, (not is_white))): # Looses Pawn
+        if len(board.pieces(1, self.is_white)) < len(board.pieces(1, (not self.is_white))): # Looses Pawn
             score += -100
 
         return score
 
-    def minimax(self, board, is_white, depth, alpha, beta):
-        if depth == 0 or board.is_checkmate():
-            return self.calc_heuristic_score(board, is_white)
+    def minimax(self, board, depth, alpha, beta):
+        if depth == 1 or board.is_checkmate():
+            return self.calc_heuristic_score(board)
 
-        elif board.turn == is_white:
+        elif board.turn == self.is_white:
             v = -10**6
 
             for a in self.possible_moves(board):
                 board_copy = board.copy()
                 board_copy.push(a)
 
-                v = max(v, self.minimax(board_copy, is_white, depth-1, alpha, beta))
+                v = max(v, self.minimax(board_copy, depth-1, alpha, beta))
                 alpha = max(alpha, v)
 
                 if alpha >= beta:
@@ -239,7 +272,7 @@ class ChessBotVictor(ChessBot):
                 board_copy = board.copy()
                 board_copy.push(a)
 
-                v = min(v, self.minimax(board_copy, is_white, depth-1, alpha, beta))
+                v = min(v, self.minimax(board_copy, depth-1, alpha, beta))
                 beta = min(beta, v)
 
                 if alpha >= beta:
@@ -249,18 +282,19 @@ class ChessBotVictor(ChessBot):
             return v
 
     def move(self, board):
+        self.is_white = board.turn
         moves = self.possible_moves(board)
-        bestScore = -10**6
+        best_score = -10**6
         current_score = 0
-        bestMove = None
+        best_move = None
 
         for move in moves:
             board_copy = board.copy()
             board_copy.push(move)
-            current_score = self.minimax(board_copy, board.turn, self.depth, -10**6, 10**6)
+            current_score = self.minimax(board_copy, self.depth, -10**6, 10**6)
 
-            if current_score > bestScore:
-                bestScore = current_score
-                bestMove = move
+            if current_score > best_score:
+                best_score = current_score
+                best_move = move
 
-        return bestMove
+        return best_move
