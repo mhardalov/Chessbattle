@@ -141,7 +141,7 @@ class ChessBotVictor(ChessBot):
 
         self.king_table_black = [i for i in reversed(self.king_table_white)]
 
-        self.king_late_game_table_white = [
+        self.king_end_game_table_white = [
             -50,-40,-30,-20,-20,-30,-40,-50,
             -30,-20,-10,  0,  0,-10,-20,-30,
             -30,-10, 20, 30, 30, 20,-10,-30,
@@ -152,7 +152,7 @@ class ChessBotVictor(ChessBot):
             -50,-30,-30,-30,-30,-30,-30,-50
         ]
 
-        self.king_late_game_table_black = [i for i in reversed(self.king_late_game_table_white)]
+        self.king_end_game_table_black = [i for i in reversed(self.king_end_game_table_white)]
 
     def calc_heuristic_score(self, board):
         score = 0
@@ -162,56 +162,103 @@ class ChessBotVictor(ChessBot):
             if not piece:
                 continue
 
-            if piece.piece_type == chess.PAWN:
-                if self.is_white:
-                    score += self.pawns_table_white[i]
-                else:
-                    score += self.pawns_table_black[i]                    
+            if piece.color == self.is_white:
+                if piece.piece_type == chess.PAWN:
+                    if self.is_white:
+                        score += self.pawns_table_white[i]
+                    else:
+                        score += self.pawns_table_black[i]                    
 
-            elif piece.piece_type == chess.KNIGHT:
-                if self.is_white:
-                    score += self.knights_table_white[i]
-                else:
-                    score += self.knights_table_black[i]                    
+                elif piece.piece_type == chess.KNIGHT:
+                    if self.is_white:
+                        score += self.knights_table_white[i]
+                    else:
+                        score += self.knights_table_black[i]                    
 
-            elif piece.piece_type == chess.BISHOP:
-                if self.is_white:
-                    score += self.bishops_table_white[i]
-                else:
-                    score += self.bishops_table_black[i]                    
+                elif piece.piece_type == chess.BISHOP:
+                    if self.is_white:
+                        score += self.bishops_table_white[i]
+                    else:
+                        score += self.bishops_table_black[i]                    
 
-            elif piece.piece_type == chess.ROOK:
-                if self.is_white:
-                    score += self.rooks_table_white[i]
-                else:
-                    score += self.rooks_table_black[i]                    
+                elif piece.piece_type == chess.ROOK:
+                    if self.is_white:
+                        score += self.rooks_table_white[i]
+                    else:
+                        score += self.rooks_table_black[i]                    
 
-            elif piece.piece_type == chess.QUEEN:
-                if self.is_white:
-                    score += self.queen_table_white[i]
-                else:
-                    score += self.queen_table_black[i]                    
+                elif piece.piece_type == chess.QUEEN:
+                    if self.is_white:
+                        score += self.queen_table_white[i]
+                    else:
+                        score += self.queen_table_black[i]                    
 
-            elif piece.piece_type == chess.KING and board.fullmove_number > 15:
-                if self.is_white:
-                    score += self.king_late_game_table_white[i]
-                else:
-                    score += self.king_late_game_table_black[i]                    
+                elif piece.piece_type == chess.KING and board.fullmove_number > 20:
+                    if self.is_white:
+                        score += self.king_end_game_table_white[i]
+                    else:
+                        score += self.king_end_game_table_black[i]                    
 
-            elif piece.piece_type == chess.KING:
-                if self.is_white:
-                    score += self.king_table_white[i]
+                elif piece.piece_type == chess.KING:
+                    if self.is_white:
+                        score += self.king_table_white[i]
+                    else:
+                        score += self.king_table_black[i]
+
                 else:
-                    score += self.king_table_black[i]
+                    pass
 
             else:
-                pass
+                if piece.piece_type == chess.PAWN:
+                    if not self.is_white:
+                        score += self.pawns_table_white[i]
+                    else:
+                        score += self.pawns_table_black[i]                    
+
+                elif piece.piece_type == chess.KNIGHT:
+                    if not self.is_white:
+                        score += self.knights_table_white[i]
+                    else:
+                        score += self.knights_table_black[i]                    
+
+                elif piece.piece_type == chess.BISHOP:
+                    if not self.is_white:
+                        score += self.bishops_table_white[i]
+                    else:
+                        score += self.bishops_table_black[i]                    
+
+                elif piece.piece_type == chess.ROOK:
+                    if not self.is_white:
+                        score += self.rooks_table_white[i]
+                    else:
+                        score += self.rooks_table_black[i]                    
+
+                elif piece.piece_type == chess.QUEEN:
+                    if not self.is_white:
+                        score += self.queen_table_white[i]
+                    else:
+                        score += self.queen_table_black[i]                    
+
+                elif piece.piece_type == chess.KING and board.fullmove_number > 20:
+                    if not self.is_white:
+                        score += self.king_end_game_table_white[i]
+                    else:
+                        score += self.king_end_game_table_black[i]                    
+
+                elif piece.piece_type == chess.KING:
+                    if not self.is_white:
+                        score += self.king_table_white[i]
+                    else:
+                        score += self.king_table_black[i]
+
+                else:
+                    pass
 
         if board.is_checkmate() and (not self.is_white == board.turn):
-            score += 900
+            score += 9000
 
         if board.is_checkmate() and (self.is_white == board.turn):
-            score -= 900
+            score += -9000
 
         if len(board.pieces(5, self.is_white)) > len(board.pieces(5, (not self.is_white))): # Takes Queen
             score += 900
