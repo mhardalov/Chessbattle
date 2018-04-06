@@ -1,4 +1,8 @@
 import chess
+import random as rnd
+import timeit
+from math import sqrt, log
+
 from .bot import ChessBot
 
 class ChessBotVictor(ChessBot):
@@ -297,6 +301,120 @@ class ChessBotVictor(ChessBot):
             board_copy = board.copy()
             board_copy.push(move)
             current_score = self.minimax(board_copy, self.depth, -10**6, 10**6)
+
+            if current_score > best_score:
+                best_score = current_score
+                best_move = move
+
+        return best_move
+
+
+# # # # # # # # # # # # # # # # # # # # # #
+# Chess Bot using Monte Carlo Tree Search #
+# # # # # # # # # # # # # # # # # # # # # #
+
+class ChessBotMonteCarlo(ChessBot):
+    def __init__(self, name, opt_dict = None):
+        super().__init__(name, opt_dict)
+        self.n_simulations = opt_dict["n_simulations"]
+        self.n_interations = opt_dict["n_iterations"]
+        self.is_white = True
+
+    class Node:
+        def __init__(self, n_wins, n_simulations, board, parent, children):
+            self.n_wins = n_wins
+            self.n_simulations = n_simulations
+            self.board = board
+            self.parent = parent
+            self.children = children
+
+        def add_child(self, node):
+            node.parent = self
+            self.children.append(node)
+
+    def get_uct(self, node, c=2):
+        return (node.n_wins / node.n_simulations) + sqrt(c*log(node.parent.n_simulations)/node.n_simulations)
+
+    def pick_best_child(self, root):
+        best_uct = -10**6
+        current_uct = 0
+        best_child = None
+
+        for child in root.children:
+            current_uct = self.get_uct(child)
+            if current_uct > best_uct:
+                best_uct = current_uct
+                best_child = child
+
+        return best_child
+
+    def simulate(self, node):
+        n_wins = 0
+  
+        for _ in range(self.n_simulations):
+            board_copy = node.board.copy()
+
+            # print("Random Playout start...")
+            while board_copy.result() == '*':
+                moves = self.possible_moves(board_copy)
+                board_copy.push(moves[rnd.randint(0, len(moves)-1)])
+            # print("Random Playout ended.")            
+
+            if (board_copy.result() == "1-0" and self.is_white) or (board_copy.result() == "0-1" and not self.is_white):
+                n_wins += 1
+            else:
+                pass
+        
+        return self.Node(n_wins, self.n_simulations, node.board.copy(), None, [])
+
+    def backpropagate(self, node):
+        while node.parent != None:
+            node.parent.n_wins += node.n_wins
+            node.parent.n_simulations += node.n_simulations
+
+            node = node.parent
+
+        return node
+
+    def monte_carlo_tree_search(self, root):
+        for _ in range(self.n_interations):
+            # print("Wins: " + str(root.n_wins))
+            # print("Simulations: " + str(root.n_simulations))            
+
+            # Selection
+            node = root
+            while len(node.children) > 0:
+                node = self.pick_best_child(node)
+
+            if len(self.possible_moves(node.board)) == 0:
+                break
+
+            # Expansion
+            board_copy = node.board.copy()            
+            moves = self.possible_moves(board_copy)
+            board_copy.push(moves[rnd.randint(0, len(moves)-1)])
+            expanded_node = self.Node(0, 0, board_copy, None, [])
+            
+            # Simulation
+            node.add_child(self.simulate(expanded_node))
+
+            # Backpropagation
+            root = self.backpropagate(node.children[-1])          
+
+        return root.n_wins / root.n_simulations
+
+    def move(self, board):
+        self.is_white = board.turn
+        best_score = -10**6
+        current_score = 0
+        best_move = None
+
+        for move in self.possible_moves(board):
+            board_copy = board.copy()
+            board_copy.push(move)
+            # start = timeit.time.clock()
+            current_score = self.monte_carlo_tree_search(self.Node(0, 0, board_copy, None, []))
+            # print(timeit.time.clock() - start)
 
             if current_score > best_score:
                 best_score = current_score
