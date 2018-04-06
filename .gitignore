@@ -105,3 +105,6 @@ ENV/
 
 # Mac OSX Specific
 .DS_Store
+
+# Victor's noisy files
+Game.ipynb
