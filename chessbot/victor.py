@@ -364,10 +364,14 @@ class ChessBotMonteCarlo(ChessBot):
                 n_wins += 1
             else:
                 pass
-        
+
         return self.Node(n_wins, self.n_simulations, node.board.copy(), None, [])
 
     def backpropagate(self, node):
+        for child in node.children:
+            node.n_wins += child.n_wins
+            node.n_simulations += child.n_simulations
+
         while node.parent != None:
             node.parent.n_wins += node.n_wins
             node.parent.n_simulations += node.n_simulations
@@ -390,34 +394,34 @@ class ChessBotMonteCarlo(ChessBot):
                 break
 
             # Expansion
-            board_copy = node.board.copy()            
-            moves = self.possible_moves(board_copy)
-            board_copy.push(moves[rnd.randint(0, len(moves)-1)])
-            expanded_node = self.Node(0, 0, board_copy, None, [])
+            expanded_nodes = []
+            moves = self.possible_moves(node.board)
+            for _ in range(len(moves)//2):
+                board_copy = node.board.copy()            
+                board_copy.push(moves[rnd.randint(0, len(moves)-1)])
+                expanded_nodes.append(self.Node(0, 0, board_copy, None, []))
             
             # Simulation
-            node.add_child(self.simulate(expanded_node))
+            for expanded_node in expanded_nodes:
+                node.add_child(self.simulate(expanded_node))
 
             # Backpropagation
-            root = self.backpropagate(node.children[-1])          
+            root = self.backpropagate(node)          
 
-        return root.n_wins / root.n_simulations
+        return root
 
     def move(self, board):
         self.is_white = board.turn
-        best_score = -10**6
-        current_score = 0
-        best_move = None
+        root = self.monte_carlo_tree_search(self.Node(0, 0, board, None, []))
+        
+        best_stat = -10^6
+        current_state = 0
+        best_node = None
 
-        for move in self.possible_moves(board):
-            board_copy = board.copy()
-            board_copy.push(move)
-            # start = timeit.time.clock()
-            current_score = self.monte_carlo_tree_search(self.Node(0, 0, board_copy, None, []))
-            # print(timeit.time.clock() - start)
+        for node in root.children:
+            current_state = node.n_wins / node.n_simulations
+            if current_state > best_stat:
+                best_stat = current_state
+                best_node = node
 
-            if current_score > best_score:
-                best_score = current_score
-                best_move = move
-
-        return best_move
+        return best_node.board.pop()
