@@ -1,4 +1,4 @@
-from chessbot.bot import ChessBot
+from .bot import ChessBot
 
 import chess
 from chess import WHITE, BLACK, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
