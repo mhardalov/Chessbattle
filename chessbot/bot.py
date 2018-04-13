@@ -6,8 +6,7 @@ class ChessBot:
     def __init__(self, name, opt_dict = None):
         self.name = name
         pass
-    
-    
+
     @abc.abstractmethod
     def move(self, board):
         pass
@@ -24,8 +23,7 @@ class ChessBot:
         return self.name[0:3]
 
 class ChessBotDumb(ChessBot):
-        
-    
+
     def move(self, board):
         moves = self.possible_moves(board)
         king = board.king(not board.turn)
