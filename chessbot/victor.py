@@ -9,6 +9,7 @@ class ChessBotVictor(ChessBot):
     def __init__(self, name, opt_dict = None):
         super().__init__(name, opt_dict)
         self.depth = opt_dict['depth']
+        self.start_board = None
         self.is_white = True
 
         self.pawns_eval_white = [
@@ -215,40 +216,52 @@ class ChessBotVictor(ChessBot):
                 else:
                     pass
 
-        if board.is_checkmate() and (not self.is_white == board.turn): # Takes King
+        # Opponent looses King
+        if board.is_checkmate() and (not self.is_white == board.turn):
             score += 9000
 
-        if board.is_checkmate() and (self.is_white == board.turn): # Looses King
+        # Bot looses King
+        if board.is_checkmate() and (self.is_white == board.turn):
             score += -9000
 
-        if len(board.pieces(chess.QUEEN, self.is_white)) > len(board.pieces(chess.QUEEN, (not self.is_white))): # Takes Queen
+        # Opponent looses Queen
+        if len(self.start_board.pieces(chess.QUEEN, (not self.is_white))) > len(board.pieces(chess.QUEEN, (not self.is_white))):
             score += 900
         
-        if len(board.pieces(chess.QUEEN, self.is_white)) < len(board.pieces(chess.QUEEN, (not self.is_white))): # Looses Queen
+        # Bot looses Queen        
+        if len(self.start_board.pieces(chess.QUEEN, self.is_white)) > len(board.pieces(chess.QUEEN, self.is_white)):
             score += -900
 
-        if len(board.pieces(chess.ROOK, self.is_white)) > len(board.pieces(chess.ROOK, (not self.is_white))): # Takes Rook
+        # Opponent looses Rook
+        if len(self.start_board.pieces(chess.ROOK, (not self.is_white))) > len(board.pieces(chess.ROOK, (not self.is_white))):
             score += 500
         
-        if len(board.pieces(chess.ROOK, self.is_white)) < len(board.pieces(chess.ROOK, (not self.is_white))): # Looses Rook
+        # Bot looses Rook        
+        if len(self.start_board.pieces(chess.ROOK, self.is_white)) > len(board.pieces(chess.ROOK, self.is_white)):
             score += -500
 
-        if len(board.pieces(chess.BISHOP, self.is_white)) > len(board.pieces(chess.BISHOP, (not self.is_white))): # Takes Bishop
+        # Opponent looses Bishop      
+        if len(self.start_board.pieces(chess.BISHOP, (not self.is_white))) > len(board.pieces(chess.BISHOP, (not self.is_white))):
             score += 300
         
-        if len(board.pieces(chess.BISHOP, self.is_white)) < len(board.pieces(chess.BISHOP, (not self.is_white))): # Looses Bishop
+        # Bot looses Bishop        
+        if len(self.start_board.pieces(chess.BISHOP, self.is_white)) > len(board.pieces(chess.BISHOP, self.is_white)):
             score += -300
-
-        if len(board.pieces(chess.KNIGHT, self.is_white)) > len(board.pieces(chess.KNIGHT, (not self.is_white))): # Takes Knight
+        
+        # Opponent looses Knight        
+        if len(self.start_board.pieces(chess.KNIGHT, (not self.is_white))) > len(board.pieces(chess.KNIGHT, (not self.is_white))):
             score += 300
         
-        if len(board.pieces(chess.KNIGHT, self.is_white)) < len(board.pieces(chess.KNIGHT, (not self.is_white))): # Looses Knight
+        # Bot looses Knight        
+        if len(self.start_board.pieces(chess.KNIGHT, self.is_white)) > len(board.pieces(chess.KNIGHT, self.is_white)):
             score += -300
 
-        if len(board.pieces(chess.PAWN, self.is_white)) > len(board.pieces(chess.PAWN, (not self.is_white))): # Takes Pawn
+        # Opponent looses Pawn    
+        if len(self.start_board.pieces(chess.PAWN, (not self.is_white))) > len(board.pieces(chess.PAWN, (not self.is_white))):
             score += 100
         
-        if len(board.pieces(chess.PAWN, self.is_white)) < len(board.pieces(chess.PAWN, (not self.is_white))): # Looses Pawn
+        # Bot looses Pawn        
+        if len(self.start_board.pieces(chess.PAWN, self.is_white)) > len(board.pieces(chess.PAWN, self.is_white)):
             score += -100
 
         # Makes AI smarter with weighting depth (number of moves)
@@ -256,7 +269,7 @@ class ChessBotVictor(ChessBot):
         return score
 
     def minimax(self, board, depth, alpha, beta):
-        if depth == 1 or board.is_checkmate():
+        if depth == 1 or board.is_game_over():
             return self.calc_heuristic_score(board, depth)
 
         elif board.turn == self.is_white:
@@ -293,6 +306,7 @@ class ChessBotVictor(ChessBot):
 
     def move(self, board):
         self.is_white = board.turn
+        self.start_board = board.copy()
         best_score = -10**6
         current_score = 0
         best_move = None
