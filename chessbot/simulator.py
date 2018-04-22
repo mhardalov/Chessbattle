@@ -31,6 +31,7 @@ class ChessSimulator:
     def print_board(self, svg, clear=True):
         if clear: clear_output(wait=True)
         display(svg)
+        print(self.board.fen())
 
     def simulate(self, rounds=4, timeout=10, turn_sleep_ms=0, verbose_size=450, verbose=True):
         self.results = []
@@ -48,7 +49,9 @@ class ChessSimulator:
                     next_move = future.result(timeout=timeout)
                 self.board.push(next_move)
 
-                if verbose: self.print_board(SVG(chess.svg.board(board=self.board, size=verbose_size)))
+                if verbose:
+                    self.print_board(SVG(chess.svg.board(board=self.board, size=verbose_size)))
+                    print("round ", r)
                 step += 1
                 if (turn_sleep_ms > 0):
                     time.sleep(turn_sleep_ms / 1000)

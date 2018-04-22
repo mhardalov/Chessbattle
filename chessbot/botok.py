@@ -4,11 +4,13 @@ import chess
 from chess import WHITE, BLACK, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
 
 class ChessBotOK(ChessBot):
+    total_scorings = 0
     def __init__(self, name, opt_dict = None):
         super().__init__(name, opt_dict)
         self.depth = opt_dict['depth']
 
     def score(self, board): # WHITE maximizes, BLACK minimizes
+        self.total_scorings += 1
         if board.is_game_over():
             return {"1-0": 10000, "1/2-1/2": 0, "0-1": -10000}[board.result()]
 
@@ -30,6 +32,9 @@ class ChessBotOK(ChessBot):
             best_score = -100000
             best_move = None
 
+            selected_moves = self.possible_moves(board)
+            print(len(selected_moves))
+
             for move in self.possible_moves(board):
                 board.push(move)
                 move_score, _ = self.minimax(board, depth - 1)
@@ -43,6 +48,9 @@ class ChessBotOK(ChessBot):
         else: # minimize
             best_score = 100000
             best_move = None
+
+            selected_moves = self.possible_moves(board)
+            print(len(selected_moves))
 
             for move in self.possible_moves(board):
                 board.push(move)
